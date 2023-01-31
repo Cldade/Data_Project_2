@@ -14,10 +14,11 @@ import logging
 import argparse
 import google.auth
 from faker import Faker
-from datetime import datetime, timedelta
+from datetime import datetime
 from google.cloud import pubsub_v1
 
-from volante import generateVolanteData
+#Import modulos
+import volante as v
 
 fake = Faker()
 
@@ -51,25 +52,28 @@ class PubSubMessages:
     def __exit__(self):
         self.publisher.transport.close()
         logging.info("PubSub Client closed.")
-
-#Date generator
+            
+#Generator date
 def random_date(start):
     current = start
-    return current + timedelta(minutes=random.randrange(60))            
+    return current + datetime.timedelta(minutes=random.randrange(60))
 
-def run_generator(project_id, topic_name):
-    pubsub_class = PubSubMessages(project_id, topic_name)
+#Generator Code
+def generateVehicleData():
     matricula = str(random.randrange(1000, 9999)) \
         + ' ' \
         +  random.choice(string.ascii_letters).upper() \
         +  random.choice(string.ascii_letters).upper() \
         +  random.choice(string.ascii_letters).upper()
-    startDate = datetime(2023, 1, 1,00,00)
-    timestamp = str(random_date(startDate))
+    startDate = datetime.datetime(2023, 1, 1,00,00)
+    timestamp = random_date(startDate)
+
+def run_generator(self, project_id, topic_name):
+    pubsub_class = PubSubMessages(project_id, topic_name)
     #Publish message into the queue every 5 seconds
     try:
         while True:
-            message: dict = generateVolanteData(matricula, timestamp)
+            message: dict = v.generateVolanteData(self.matricula, self.timestamp)
             pubsub_class.publishMessages(message)
             #it will be generated a transaction each 2 seconds
             time.sleep(5)
