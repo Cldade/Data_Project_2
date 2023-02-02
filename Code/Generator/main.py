@@ -17,7 +17,9 @@ from faker import Faker
 from datetime import datetime, timedelta
 from google.cloud import pubsub_v1
 
-from volante import generateVolanteData
+from volante import generateVolanteData as g_vol_d
+from centralita import generateCentralitaData as g_cen_d
+from camara import generateCamaraData as g_cam_d
 
 fake = Faker()
 
@@ -69,8 +71,30 @@ def run_generator(project_id, topic_name):
     #Publish message into the queue every 5 seconds
     try:
         while True:
-            message: dict = generateVolanteData(matricula, timestamp)
+            message: dict = g_vol_d(matricula, timestamp)
             pubsub_class.publishMessages(message)
+            #it will be generated a transaction each 2 seconds
+            time.sleep(5)
+    except Exception as err:
+        logging.error("Error while inserting data into out PubSub Topic: %s", err)
+    finally:
+        pubsub_class.__exit__()
+
+    try:
+        while True:
+            message2: dict = g_cen_d(matricula, timestamp)
+            pubsub_class.publishMessages(message2)
+            #it will be generated a transaction each 2 seconds
+            time.sleep(5)
+    except Exception as err:
+        logging.error("Error while inserting data into out PubSub Topic: %s", err)
+    finally:
+        pubsub_class.__exit__()
+
+    try:
+        while True:
+            message3: dict = g_cam_d(matricula, timestamp)
+            pubsub_class.publishMessages(message3)
             #it will be generated a transaction each 2 seconds
             time.sleep(5)
     except Exception as err:
