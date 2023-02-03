@@ -37,24 +37,25 @@ class vehicle_data():
 #Generamos la fecha
 def random_date(start):
     current = start
-    return current + timedelta(seconds=2)    
+    return current + timedelta(minutes=1)    
 
 startDate = datetime(2023, 1, 1,00,00)
 fecha_ant = datetime(2023, 1, 1,00,00)
-tiempo = -2
+tiempo = -1
 tiempo_ant = 0
 
 #Generamos los datos del vehículo
 def vehicle_data(fecha, tiempo, matricula):
     timestamp = fecha
 #Datos del volante
-    pulsacion = random.randrange(60,100)
-    tension = random.randrange(80,120)
+    pulsacion = random.randrange(50,100)
+    tension = random.randrange(60,120)
 #Datos de la camara
     inclinacion = random.randrange(0,80)
-    #Tiempo de parpadeo medio 100ms
-    parpadeo = random.randrange(50,300)
+    #Nº de parpadeos
+    parpadeo = random.randrange(13,20)
 #Datos de la centralita
+    #Tiempo en minutos
     tiempo = tiempo
     cambios_velocidad = bool(random.getrandbits (1))
     correciones_volante = bool(random.getrandbits (1))
@@ -92,7 +93,7 @@ def run_generator(project_id):
             #it will be generated a transaction each 2 seconds
             time.sleep(5)
             fecha = random_date(fecha)
-            tiempo = tiempo + 2
+            tiempo = tiempo + 1
     except Exception as err:
         logging.error("Error while inserting data into out PubSub Topic: %s", err)
     finally:
