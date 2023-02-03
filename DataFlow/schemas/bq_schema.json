@@ -1,0 +1,44 @@
+{
+    "vehicle": [
+    {
+      "mode": "NULLABLE",
+      "name": "Matricula",
+      "type": "STRING"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "TimeStamp",
+      "type": "NUMERIC"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "Tension_Arterial",
+      "type": "NUMERIC"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "Inclinacion_Cabeza",
+      "type": "NUMERIC"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "Parpadeo",
+      "type": "NUMERIC"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "Tiempo_Conducciom",
+      "type": "NUMERIC"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "Cambios_Velocidad",
+      "type": "NUMERIC"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "Correcciones_Volante",
+      "type": "NUMERIC"
+    }
+    ]
+}

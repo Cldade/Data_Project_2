@@ -44,23 +44,49 @@ class add_processing_time(beam.DoFn):
 
 class matricula(beam.DoFn):
     def process(self, element):
-        mat = element['matricula']
+        mat = element['Matricula']
         yield mat
 
 class pulsacion(beam.DoFn):
-    def process(self, element1):
-        pul = element1['pulsacion']
+    def process(self, element):
+        pul = element1['Pulsacion']
         yield pul
 
 class tension(beam.DoFn):
-    def process(self, element2):
-        ten = element2['tension']
+    def process(self, element):
+        ten = element2['Tension']
         yield ten
+
+class inclinacion(beam.DoFn):
+    def process(self, element):
+        inc = element2['Inclinacion_cabeza']
+        yield inc
+
+class parpadeo(beam.DoFn):
+    def process(self, element):
+        par = element2['Parpadeo']
+        yield par
+
+class timepo(beam.DoFn):
+    def process(self, element):
+        tie = element2['Tiempo_conduccion']
+        yield tie
+
+class cambios_velocidad(beam.DoFn):
+    def process(self, element):
+        cam = element2['Cambio_velocidad']
+        yield cam
+
+class correciones_volante(beam.DoFn):
+    def process(self, element):
+        cor = element2['Correcciones_Volante']
+        yield cor
+
 
 #Beam PipeLine
 def dataFlow(table):
     #Load schema from BigQuery/schemas folder
-    with open(f"folder/{table}.json") as file:
+    with open(f"schemas/{table}.json") as file:
         schema = json.load(file)
     
     #Declare bigquery schema
@@ -78,11 +104,11 @@ def dataFlow(table):
         
           data = (
             #Read messages from PubSub
-            p | "Read messages from PubSub" >> beam.io.ReadFromPubSub(subscription=f"Meter el PubSub del repositorio", with_attributes=True)
+            p | "Read messages from PubSub" >> beam.io.ReadFromPubSub(subscription=f"projects/dataproject2-376417/subscriptions/{table}", with_attributes=True)
             #Parse JSON messages with Map Function and adding Processing timestamp
               | "Parse JSON messages" >> beam.Map(parsePubSubMessages)
               | "Write to BigQuery" >> beam.io.WriteToBigQuery(
-                    table = f"Nuestro Dataset",
+                    table = f"dataproject2-376417:DataProject.{table}",
                     schema = schema,
                     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                     write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
@@ -96,12 +122,11 @@ def dataFlow(table):
               | "WindowByMinute" >> beam.WindowInto(window.FixedWindows(60))
               | "MeanByWindow" >> beam.CombineGlobally(MeanCombineFn()).without_defaults()
               | "Add Window ProcessingTime" >> beam.ParDo(add_processing_time())
-              | "WriteToPubSub" >> beam.io.WriteToPubSub(topic="Añadir nuestro topico de pubsub", with_attributes=False)
+              | "WriteToPubSub" >> beam.io.WriteToPubSub(topic="projects/dataproject2-376417/topics/vehiculo", with_attributes=False)
          )  
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    dataFlow("TablaDockerfile")
+    dataFlow("bq_schema")
 
 
-#Crear Dockerfile, requierements
