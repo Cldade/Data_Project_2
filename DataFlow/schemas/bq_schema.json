@@ -8,6 +8,11 @@
     {
       "mode": "NULLABLE",
       "name": "TimeStamp",
+      "type": "DATETIME"
+    },
+    {
+      "mode": "NULLABLE",
+      "name": "Pulsacion",
       "type": "NUMERIC"
     },
     {
@@ -27,18 +32,18 @@
     },
     {
       "mode": "NULLABLE",
-      "name": "Tiempo_Conducciom",
+      "name": "Tiempo_conduccion",
       "type": "NUMERIC"
     },
     {
       "mode": "NULLABLE",
       "name": "Cambios_Velocidad",
-      "type": "NUMERIC"
+      "type": "BOOL"
     },
     {
       "mode": "NULLABLE",
       "name": "Correcciones_Volante",
-      "type": "NUMERIC"
+      "type": "BOOL"
     }
     ]
 }
