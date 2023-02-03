@@ -74,7 +74,7 @@ class correciones_volante(beam.DoFn):
 
 class alarma(beam.DoFn):
     def process(self,element):
-        if  parpadeo() > 17 and inclinacion() > 15 and tiempo() > 150 and pulsacion() <= 65 and tension() < 80 and cambios_velocidad() = true and correciones_volante() = true:
+        if  parpadeo() > 17 and inclinacion() > 15 and tiempo() > 150 and pulsacion() <= 65 and tension() < 80 and cambios_velocidad() == True and correciones_volante() == True:
             output_data = {'Matricula': matricula(), 'Pulsación': pulsacion(), 'Tensión': tension(), 'Inclinacion_cabeza': inclinacion(),
             'Parpadeo': parpadeo(), 'Tiempo': tiempo(), 'Cambios de velocidad': cambio_velocidad(), 'Correcciones al volante': correciones_volante()}
             output_json = json.dumps(output_data)
@@ -86,7 +86,7 @@ class alarma(beam.DoFn):
 #Beam PipeLine
 def dataFlow(table):
     #Load schema from BigQuery/schemas folder
-    with open(f"schemas/{table}.json") as file:
+    with open(f"./schemas/{table}.json") as file:
         schema = json.load(file)
     
     #Declare bigquery schema
@@ -99,34 +99,23 @@ def dataFlow(table):
     #should be saved during pipeline serialization, 
     #which enables pickling objects that belong to the main session.+
 
-    options = PipelineOptions(save_main_session=True, streaming=True)
+    options = PipelineOptions(project= 'dataproject2-376417',save_main_session=True, streaming=True)
     with beam.Pipeline(options=options) as p:
         
           data = (
             #Read messages from PubSub
-            p | "Read messages from PubSub" >> beam.io.ReadFromPubSub(subscription=f"projects/dataproject2-376417/subscriptions/{table}", with_attributes=True)
+            p | "Read messages from PubSub" >> beam.io.ReadFromPubSub(subscription=f"projects/dataproject2-376417/subscriptions/vehicle-sub", with_attributes=True)
             #Parse JSON messages with Map Function and adding Processing timestamp
               | "Parse JSON messages" >> beam.Map(parsePubSubMessages)
               | "Write to BigQuery" >> beam.io.WriteToBigQuery(
-                    table = f"dataproject2-376417:DataProject.{table}",
+                    table = f"dataproject2-376417:DataProject.vehiculo",
                     schema = schema,
                     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                     write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
-        )
-        # Tratamiento de Datos.
-        #Se crea una ventana de 1 minuto.
-         (data 
-              | "Get Matricula value" >> beam.ParDo(matricula())
-              | "Get Pulsación value" >> beam.ParDo(pulsacion())
-              | "Get Tesión value" >> beam.ParDo(tension())
-              | "WindowByMinute" >> beam.WindowInto(window.FixedWindows(60))
-              | "MeanByWindow" >> beam.CombineGlobally(MeanCombineFn()).without_defaults()
-              | "Add Window ProcessingTime" >> beam.ParDo(add_processing_time())
-              | "WriteToPubSub" >> beam.io.WriteToPubSub(topic="projects/dataproject2-376417/topics/vehiculo", with_attributes=False)
-         )
+                )
         )
 
-def dataFlow(table):
+def dataFlowAlarm(table):
     #Load schema from BigQuery/schemas folder
     with open(f"schemas/{table}.json") as file:
         schema = json.load(file)
@@ -169,6 +158,6 @@ def dataFlow(table):
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     dataFlow("bq_schema")
-    dataFlowAlarm("alarm_schema")
+    #dataFlowAlarm("alarm_schema")
 
 

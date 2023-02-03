@@ -1,5 +1,5 @@
 {
-    "vehicle": [
+    "fields": [
     {
       "mode": "NULLABLE",
       "name": "Matricula",
