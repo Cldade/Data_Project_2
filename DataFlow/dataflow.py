@@ -108,7 +108,7 @@ def dataFlow(table):
             #Parse JSON messages with Map Function and adding Processing timestamp
               | "Parse JSON messages" >> beam.Map(parsePubSubMessages)
               | "Write to BigQuery" >> beam.io.WriteToBigQuery(
-                    table = f"dataproject2-376417:DataProject.vehiculo",
+                    table = f"dataproject2-376417.DataProject.vehiculo",
                     schema = schema,
                     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                     write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
