@@ -3,7 +3,7 @@ from google.cloud import pubsub_v1
 import logging
 import json
 from datetime import datetime, timedelta
-import random
+import random 
 import string
 import time
 
@@ -34,13 +34,22 @@ class vehicle_data():
             +  random.choice(string.ascii_letters).upper() \
             +  random.choice(string.ascii_letters).upper()
 
+def random_date(self,start, end):
+        delta = end - start
+        int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
+        random_second = random.randrange(int_delta)
+        return start + timedelta(seconds=random_second)
+
 #Generamos la fecha
-def random_date(start):
+def increasing_date(start):
     current = start
     return current + timedelta(minutes=1)    
 
-startDate = datetime(2023, 1, 1,00,00)
-fecha_ant = datetime(2023, 1, 1,00,00)
+#Generamos una fecha para el coche
+d1 = datetime(2023, 1, 1, 00, 00)
+d2 = datetime(2023, 12, 31, 23, 59)
+startDate = random_date(d1, d2)
+fecha_ant = startDate
 tiempo = -1
 tiempo_ant = 0
 
@@ -92,7 +101,7 @@ def run_generator(project_id):
             pubsub_class.publishMessages(message_volante)
             #it will be generated a transaction each 2 seconds
             time.sleep(5)
-            fecha = random_date(fecha)
+            fecha = increasing_date(fecha)
             tiempo = tiempo + 1
     except Exception as err:
         logging.error("Error while inserting data into out PubSub Topic: %s", err)
