@@ -35,7 +35,7 @@ class add_processing_time(beam.DoFn):
 #Nos quedamso solo con los registros que sean alarmas
 class alarma(beam.DoFn):
     def process(self,element):
-        if  element['Parpadeo'] > 17: 
+        if  element['Parpadeo'] > 17 or element['Inclinacion_cabeza'] > 15 or element['Tiempo_conduccion'] > 150 or element['Pulsacion'] <= 65 or element['Tension_arterial'] < 80 or element['Cambios_velocidad'] == True or element['Correcciones_volante'] == True: 
             yield element
 
 # DoFn 05 : Output data formatting
