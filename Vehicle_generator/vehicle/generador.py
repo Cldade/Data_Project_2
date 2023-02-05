@@ -25,16 +25,8 @@ class PubSubMessages:
         self.publisher.transport.close()
         logging.info("PubSub Client closed.")
 
-class vehicle_data():
-    #Generamos los datos del vehículo
-    def vehicle_data():
-        return str(random.randrange(1000, 9999)) \
-            + ' ' \
-            +  random.choice(string.ascii_letters).upper() \
-            +  random.choice(string.ascii_letters).upper() \
-            +  random.choice(string.ascii_letters).upper()
 
-def random_date(self,start, end):
+def random_date(start, end):
         delta = end - start
         int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
         random_second = random.randrange(int_delta)
@@ -84,7 +76,9 @@ def vehicle_data(fecha, tiempo, matricula):
 #Publicador de mensajes
 def run_generator(project_id):
     pubsub_class = PubSubMessages(project_id, "vehiculo")
-    fecha = datetime(2023, 1, 1,00,00)
+    d1 = datetime(2023, 1, 1, 00, 00)
+    d2 = datetime(2023, 12, 31, 23, 59)
+    fecha = random_date(d1, d2)
     tiempo = 0
     matricula = str(random.randrange(1000, 9999)) \
         + ' ' \
@@ -92,7 +86,7 @@ def run_generator(project_id):
         +  random.choice(string.ascii_letters).upper() \
         +  random.choice(string.ascii_letters).upper()
     i = 0
-    n = random.randrange(0,200)
+    n = random.randrange(0,20000)
     #Publish message into the queue every 5 seconds
     try:
         while i <= n:
