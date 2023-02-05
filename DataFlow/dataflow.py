@@ -1,4 +1,3 @@
-
 import argparse
 import json
 import logging
@@ -35,8 +34,18 @@ class add_processing_time(beam.DoFn):
 #Nos quedamso solo con los registros que sean alarmas
 class alarma(beam.DoFn):
     def process(self,element):
+<<<<<<< Updated upstream
         if  element['Parpadeo'] > 17 or element['Inclinacion_cabeza'] > 15 or element['Tiempo_conduccion'] > 150 or element['Pulsacion'] <= 65 or element['Tension_arterial'] < 80 or element['Cambios_velocidad'] == True or element['Correcciones_volante'] == True: 
             yield element
+=======
+        if  parpadeo() > 17 and inclinacion() > 15 and tiempo() > 150 and pulsacion() <= 65 and tension() < 80 and cambios_velocidad() == True and correciones_volante() == True:
+            output_data = {'Matricula': matricula(), 'Pulsación': pulsacion(), 'Tensión': tension(), 'Inclinacion_cabeza': inclinacion(),
+            'Parpadeo': parpadeo(), 'Tiempo': tiempo(), 'Cambios de velocidad': cambio_velocidad(), 'Correcciones al volante': correciones_volante()}
+            output_json = json.dumps(output_data)
+            yield output_json.encode('utf-8')
+
+
+>>>>>>> Stashed changes
 
 # DoFn 05 : Output data formatting
 class OutputFormatDoFn(beam.DoFn):
@@ -83,6 +92,7 @@ def dataFlow():
                 # Searching alarms
                 | "Seleccionando Alarmas" >> beam.ParDo(alarma())
         )
+<<<<<<< Updated upstream
         #Publicamos en el tópico las matrículas con alarmas
         (
             alarmas 
@@ -96,6 +106,34 @@ def dataFlow():
             alarmas
                 |"Write to BigQuery-Alarmas" >> beam.io.WriteToBigQuery(
                     table = f"dataproject2-376417.DataProject.alarma",
+=======
+
+def dataFlow(table):
+    #Load schema from BigQuery/schemas folder
+    with open(f"schemas/{table}.json") as file:
+        schema = json.load(file)
+    
+    #Declare bigquery schema
+    schema = bigquery_tools.parse_table_schema_from_json(json.dumps(schema))
+    
+
+    #Creation of Pipeline and set the options.
+
+    #save_main_session: indicates that the main session 
+    #should be saved during pipeline serialization, 
+    #which enables pickling objects that belong to the main session.+
+
+    options = PipelineOptions(save_main_session=True, streaming=True)
+    with beam.Pipeline(options=options) as p:
+        
+          data = (
+            #Read messages from PubSub
+            p | "Read messages from PubSub" >> beam.io.ReadFromPubSub(subscription=f"projects/dataproject2-376417/subscriptions/vehiculo-sub", with_attributes=True)
+            #Parse JSON messages with Map Function and adding Processing timestamp
+              | "Parse JSON messages" >> beam.Map(parsePubSubMessages)
+              | "Write to BigQuery" >> beam.io.WriteToBigQuery(
+                    table = f"dataproject2-376417.DataProject.{table}",
+>>>>>>> Stashed changes
                     schema = schema,
                     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                     write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
