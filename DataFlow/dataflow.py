@@ -34,10 +34,10 @@ class add_processing_time(beam.DoFn):
 #Nos quedamso solo con los registros que sean alarmas
 class alarma(beam.DoFn):
     def process(self,element):
-<<<<<<< Updated upstream
         if  element['Parpadeo'] > 17 or element['Inclinacion_cabeza'] > 15 or element['Tiempo_conduccion'] > 150 or element['Pulsacion'] <= 65 or element['Tension_arterial'] < 80 or element['Cambios_velocidad'] == True or element['Correcciones_volante'] == True: 
             yield element
-=======
+
+        =======
         if  parpadeo() > 17 and inclinacion() > 15 and tiempo() > 150 and pulsacion() <= 65 and tension() < 80 and cambios_velocidad() == True and correciones_volante() == True:
             output_data = {'Matricula': matricula(), 'Pulsación': pulsacion(), 'Tensión': tension(), 'Inclinacion_cabeza': inclinacion(),
             'Parpadeo': parpadeo(), 'Tiempo': tiempo(), 'Cambios de velocidad': cambio_velocidad(), 'Correcciones al volante': correciones_volante()}
@@ -46,6 +46,7 @@ class alarma(beam.DoFn):
 
 
 >>>>>>> Stashed changes
+            
 
 # DoFn 05 : Output data formatting
 class OutputFormatDoFn(beam.DoFn):
@@ -92,7 +93,6 @@ def dataFlow():
                 # Searching alarms
                 | "Seleccionando Alarmas" >> beam.ParDo(alarma())
         )
-<<<<<<< Updated upstream
         #Publicamos en el tópico las matrículas con alarmas
         (
             alarmas 
@@ -106,6 +106,12 @@ def dataFlow():
             alarmas
                 |"Write to BigQuery-Alarmas" >> beam.io.WriteToBigQuery(
                     table = f"dataproject2-376417.DataProject.alarma",
+                    schema = schema,
+                    create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+                    write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
+                )
+        )
+
 =======
 
 def dataFlow(table):
@@ -133,12 +139,12 @@ def dataFlow(table):
               | "Parse JSON messages" >> beam.Map(parsePubSubMessages)
               | "Write to BigQuery" >> beam.io.WriteToBigQuery(
                     table = f"dataproject2-376417.DataProject.{table}",
->>>>>>> Stashed changes
                     schema = schema,
                     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                     write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
                 )
         )
+>>>>>>> Stashed changes
         
 
 if __name__ == "__main__":
