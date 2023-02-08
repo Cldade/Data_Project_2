@@ -24,6 +24,7 @@ def getcontainers():
 def genuserid():
     return uuid.uuid4().hex
 
+
 def deletecontainer(container_id):
     cmd=f"docker container rm {container_id} -f "
     stream = os.popen(cmd)
