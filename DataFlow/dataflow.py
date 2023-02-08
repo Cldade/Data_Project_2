@@ -25,17 +25,40 @@ def parsePubSubMessages(message):
 
 #Se añade el tiempo en procesar cada elemento
 class add_processing_time(beam.DoFn):
-    def process(self, element, element1, element2):
+    def process(self, element):
         window_start = str(datetime.datetime.now())
-        output_data = {'Matricula': element, 'Pulsación': element1, 'Tensión': element2, 'processingTime': window_start}
+        output_data = {'Matricula': element['Matricula'], 'Pulsación': element['Pulsacion'], 'Tensión': element['Tension_arterial'], 'processingTime': window_start}
         output_json = json.dumps(output_data)
         yield output_json.encode('utf-8')
 
 #Nos quedamso solo con los registros que sean alarmas
 class alarma(beam.DoFn):
     def process(self,element):
-        if  element['Parpadeo'] > 17 or element['Inclinacion_cabeza'] > 15 or element['Tiempo_conduccion'] > 150 or element['Pulsacion'] <= 65 or element['Tension_arterial'] < 80 or element['Cambios_velocidad'] == True or element['Correcciones_volante'] == True: 
+        if  element['Parpadeo'] > 17 or element['Inclinacion_cabeza'] > 15 or element['Tiempo_conduccion'] > 150 or element['Pulsacion'] <= 65 or elementTension_arterial[''] < 80 or element['Cambios_velocidad'] == True or element['Correcciones_volante'] == True: 
             yield element
+
+# DoFn 04: Dealing with frequent clients
+class getMatriculaDoFn(beam.DoFn):
+    def process(self, element):
+        #Get Product_id field from the input element
+        yield element['Matricula']
+
+def topmatriculas():
+    if(element[0] >= 4):
+        yield element
+
+#PTransform Classes
+class getBestMatricula(beam.PTransform):
+    def expand(self, pcoll):
+        best_matricula = (pcoll
+            | "Pair keys" >> beam.Map(lambda x: (x,1))
+            # CombinePerKey
+            | "CombinePerKey" >> beam.CombinePerKey(sum)
+            # Swap the key,value to make the process easier
+            | "Swap k,v" >> beam.KvSwap()
+            # Get the Max Value
+            | "Get top x matriculas" >> beam.ParDo(getMatriculaDoFn())
+        yield best_matricula
 
 # DoFn 05 : Output data formatting
 class OutputFormatDoFn(beam.DoFn):
@@ -95,6 +118,29 @@ def dataFlow():
             alarmas
                 |"Write to BigQuery-Alarmas" >> beam.io.WriteToBigQuery(
                     table = f"dataproject2-376417.DataProject.alarma",
+                    schema = schema,
+                    create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+                    write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
+                )
+        )
+        
+       top_alarmas = (
+            data 
+                # Dealing with fraudulent transactions
+                | "Get Product Field" >> beam.ParDo(getMatriculaDoFn())
+                # Add Windows
+                | "Set fixed window" >> beam.WindowInto(window.FixedWindows(300))
+                # Get Best-selling product
+                | "Get best-selling prduct" >> getBestProduct()
+                # Define output format
+                | "OutputFormat" >> beam.ParDo(OutputFormatDoFn())
+                # Write notification to PubSub Topic
+                | "Send Push Notification" >> beam.io.WriteToPubSub(topic=f"projects/{args.project_id}/topics/{args.output_topic}", with_attributes=False)
+        )
+        (
+            top_alarmas
+                |"Write to BigQuery-Alarmas" >> beam.io.WriteToBigQuery(
+                    table = f"dataproject2-376417.DataProject.top_alarma",
                     schema = schema,
                     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
                     write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
