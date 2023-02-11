@@ -40,26 +40,26 @@ class topmatriculas(beam.DoFn):
         if(element[0] >= 3):
             yield element
 
-#
+#Top alarm format
 def estructura_top_alarmas(numero, matricula):
     yield {"Numero": numero, "Matricula": matricula}
 
 #PTransform Classes
-class getBestMatricula(beam.PTransform):
+class WriteBigQuery(beam.PTransform):
     def expand(self, pcoll):
-        best_matricula = (pcoll
-            | "Pair keys" >> beam.Map(lambda x: (x,1))
-            # CombinePerKey
-            | "CombinePerKey" >> beam.CombinePerKey(sum)
-            # Swap the key,value to make the process easier
-            | "Swap k,v" >> beam.KvSwap()
-            # Get the Max Value
-            | "Get top x matriculas" >> beam.beam.Map(estructura_top_alarmas(beam.key(), beam.Value()))
-            | "Get top x matriculas" >> beam.ParDo(topmatriculas())
-        )
-        return best_matricula
+        with open(f"./schemas/bq_schema.json") as file:
+            schema = json.load(file)
 
-# DoFn 05 : Output data formatting
+        (pcoll
+            |"Write to BigQuery" >> beam.io.WriteToBigQuery(
+                    table = f"dataproject2-376417.DataProject.{table}",
+                    schema = schema,
+                    create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
+                    write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
+                )
+        )
+
+# DoFn 04 : Output data formatting
 class OutputFormatDoFn(beam.DoFn):
     #Add process function
     def process(self, element):
@@ -69,7 +69,7 @@ class OutputFormatDoFn(beam.DoFn):
         output_json = json.dumps(output_msg)
         yield output_json.encode('utf-8')
 
-# DoFn 05 : Output data formatting
+# DoFn 06 : Output data formatting alarm
 class OutputFormatAlarmasDoFn(beam.DoFn):
     #Add process function
     def process(self, element):
@@ -81,12 +81,10 @@ class OutputFormatAlarmasDoFn(beam.DoFn):
 
 #Beam PipeLine
 def dataFlow():
+    global table
     #Load schema from BigQuery/schemas folder
     with open(f"./schemas/bq_schema.json") as file:
         schema = json.load(file)
-    
-    with open(f"./schemas/top_alarmas.json") as file:
-        schema2 = json.load(file)
     
     #Declare bigquery schema
     schema = bigquery_tools.parse_table_schema_from_json(json.dumps(schema))
@@ -102,14 +100,10 @@ def dataFlow():
               
         )
         #Guardamos todos los datos tal cual los leemos
+        table = "vehicle"
         (
             data
-                |"Write to BigQuery-Vehiculos" >> beam.io.WriteToBigQuery(
-                    table = f"dataproject2-376417.DataProject.vehiculo",
-                    schema = schema,
-                    create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                    write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
-                )
+                | "Bigquery-vehiculos" >> WriteBigQuery()
         )
         #Identificamos los vehículos que puedan tener alarmas
         alarmas = (
@@ -126,20 +120,15 @@ def dataFlow():
                 | "Send Push Notification" >> beam.io.WriteToPubSub(topic=f"projects/dataproject2-376417/topics/alarmas", with_attributes=False)
         )
         #Nos guardamos los datos de los vehículos con alarmas  
+        table = "alarm"
         (
             alarmas
-                |"Write to BigQuery-TopAlarmas" >> beam.io.WriteToBigQuery(
-                    table = f"dataproject2-376417.DataProject.alarma",
-                    schema = schema,
-                    create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                    write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
-                )
+                | "Bigquery-alarmas" >> WriteBigQuery()
         )
         
         top_alarmas = (
             data 
-                # Dealing with fraudulent transactions
-                | "Get Product Field" >> beam.ParDo(getMatriculaDoFn())
+                | "Get MAtricula" >> beam.ParDo(getMatriculaDoFn())
                 # Add Windows
                 | "Set fixed window" >> beam.WindowInto(window.FixedWindows(20))
                 | "Pair keys" >> beam.Map(lambda x: (x,1))
@@ -147,27 +136,13 @@ def dataFlow():
                 | "CombinePerKey" >> beam.CombinePerKey(sum)
                 # Swap the key,value to make the process easier
                 | "Swap k,v" >> beam.KvSwap()
-                # Get the Max Value
-                # | "Get top x matriculas" >> beam.Map(estructura_top_alarmas(beam.Keys(), beam.Values()))
                 | "Get top x matriculas" >> beam.ParDo(topmatriculas())
-                # Get Best-selling product
-                #| "Get best-selling prduct" >> getBestMatricula()
                 # Define output format
                 | "OutputFormat Alarmas_top" >> beam.ParDo(OutputFormatAlarmasDoFn())
                 #Write alarm to PubSub Topic
                 | "Send Push Notification Alarmas_top" >> beam.io.WriteToPubSub(topic=f"projects/dataproject2-376417/topics/alarmas_top", with_attributes=False)
         )
-        '''
-        (
-            top_alarmas
-                |"Write to BigQuery-Alarmas" >> beam.io.WriteToBigQuery(
-                    table = f"dataproject2-376417.DataProject.top_alarma",
-                    schema = schema2,
-                    create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED,
-                    write_disposition=beam.io.BigQueryDisposition.WRITE_APPEND 
-                )
-        )
-        '''
+        
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
