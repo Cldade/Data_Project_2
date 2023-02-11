@@ -9,7 +9,6 @@ import time
 
 class PubSubMessages:
     """ Publish Messages in our PubSub Topic """
-
     def __init__(self, project_id, topic_name):
         self.publisher = pubsub_v1.PublisherClient()
         self.project_id = project_id
@@ -25,19 +24,19 @@ class PubSubMessages:
         self.publisher.transport.close()
         logging.info("PubSub Client closed.")
 
-
+#Select random date
 def random_date(start, end):
         delta = end - start
         int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
         random_second = random.randrange(int_delta)
         return start + timedelta(seconds=random_second)
 
-#Generamos la fecha
+#we increase the date
 def increasing_date(start):
     current = start
     return current + timedelta(minutes=1)    
 
-#Generamos una fecha para el coche
+#We generate a date for the car
 d1 = datetime(2023, 1, 1, 00, 00)
 d2 = datetime(2023, 12, 31, 23, 59)
 startDate = random_date(d1, d2)
@@ -45,22 +44,22 @@ fecha_ant = startDate
 tiempo = -1
 tiempo_ant = 0
 
-#Generamos los datos del vehículo
+#We generate vehicle data
 def vehicle_data(fecha, tiempo, matricula):
     timestamp = fecha
-#Datos del volante
+#flyer data
     pulsacion = random.randrange(50,100)
     tension = random.randrange(60,120)
-#Datos de la camara
+#Camera data
     inclinacion = random.randrange(0,80)
-    #Nº de parpadeos
+    #Number of blinks
     parpadeo = random.randrange(13,20)
-#Datos de la centralita
-    #Tiempo en minutos
+#Control panel data
+    #Time in minutes
     tiempo = tiempo
     cambios_velocidad = bool(random.getrandbits (1))
     correciones_volante = bool(random.getrandbits (1))
-#Respuesta
+#Response
     return {
         "Matricula": matricula,
         "TimeStamp": timestamp,
@@ -73,7 +72,7 @@ def vehicle_data(fecha, tiempo, matricula):
         "Correcciones_volante": correciones_volante
     }
 
-#Publicador de mensajes
+#message publisher
 def run_generator(project_id):
     pubsub_class = PubSubMessages(project_id, "vehiculo")
     d1 = datetime(2023, 1, 1, 00, 00)
@@ -90,7 +89,6 @@ def run_generator(project_id):
     #Publish message into the queue every 5 seconds
     try:
         while i <= n:
-            #Publicando datos del sensor `volante'
             message_volante: dict = vehicle_data(str(fecha), tiempo, matricula)
             pubsub_class.publishMessages(message_volante)
             #it will be generated a transaction each 2 seconds
@@ -102,7 +100,3 @@ def run_generator(project_id):
     finally:
         pubsub_class.__exit__()
         #pubsub_class_centralita.__exit__()
-
-if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.INFO)
-    run_generator("dataproject2-376417")
