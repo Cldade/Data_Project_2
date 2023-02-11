@@ -16,3 +16,12 @@ Para usar este script se debe ejecutar:
 ```
 main.py -t <topcontainers> -e <elapsedtime> -i <imagename>
 ```
+
+# Pasos para poder poner en marcha el generador de datos
+
+Para poder ejecutar el cliente multiple hay que seguir los siguientes pasos:
+1. Abrir una terminal en la carpeta Vehicle_generator/vehicle/
+2. Ejecutar `Docker buil -t client:latest .`
+3. Ejecutar el archivo main.py que hay en Vehicle_generator/ `python3 main.py -t 100 -e 2 -i client`
+
+IMPORTANTE: en la carpeta Vehicle_generator/vehicle/ hay que poner el archivo key.json con las credenciales de la cuenta de servicio de google cloud. Este archivo no se puede subir a git, por eso esta explicitamente puesto en '.gitignore' que no se suba.
