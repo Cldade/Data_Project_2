@@ -23,31 +23,24 @@ def parsePubSubMessages(message):
     #Return function
     return row
 
-#Se añade el tiempo en procesar cada elemento
-class add_processing_time(beam.DoFn):
-    def process(self, element):
-        window_start = str(datetime.datetime.now())
-        output_data = {'Matricula': element['Matricula'], 'Pulsación': element['Pulsacion'], 'Tensión': element['Tension_arterial'], 'processingTime': window_start}
-        output_json = json.dumps(output_data)
-        yield output_json.encode('utf-8')
-
-#Nos quedamso solo con los registros que sean alarmas
+#DoFn 01: Select records with alarms
 class alarma(beam.DoFn):
     def process(self,element):
         if  element['Parpadeo'] > 17 or element['Inclinacion_cabeza'] > 15 or element['Tiempo_conduccion'] > 150 or element['Pulsacion'] <= 65 or element['Tension_arterial'] < 80 or element['Cambios_velocidad'] == True or element['Correcciones_volante'] == True: 
             yield element
 
-# DoFn 04: Dealing with frequent clients
+# DoFn 02: Get Matricula field from the input element
 class getMatriculaDoFn(beam.DoFn):
     def process(self, element):
-        #Get Product_id field from the input element
         yield element
 
+# DoFn 03: Catching license plates with more than three alarms in 5 minutes
 class topmatriculas(beam.DoFn):
     def process(self, element):
         if(element[0] >= 3):
             yield element
 
+#
 def estructura_top_alarmas(numero, matricula):
     yield {"Numero": numero, "Matricula": matricula}
 
