@@ -18,10 +18,9 @@ if not credentials:
 else:
     print("Autenticación exitosa")
 
-
 user_id=os.getenv('USER_ID')
 topic_id=os.getenv('TOPIC_ID')
-time_lapse=int(os.getenv('TIME_ID'))
+time_lapse=os.getenv('TIME_ID')
 
 def senddata():
     g.logging.getLogger().setLevel(logging.INFO)
