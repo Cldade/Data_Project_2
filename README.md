@@ -39,3 +39,6 @@ Este proyecto se compone de dos carpetas principales.
 
 2. DataFlow: donde se encuentra el código para poder tratar los datos que consumimos del tópico de pubsub donde van dejando todos los mensajes los vehículos. Se encarga de guardarlos en un base de datos, a parte de filtrar los que consideramos como alarmas de somnolencia. También, tiene un tratamiento a cada minuto para emitir otro tipo de alerta más grave cuando detectamos que un conductor tiene más de 3 alarmas en ese periodo de un minuto.
 
+## Demostración del funcionamiento:
+
+[Video de demostración](https://www.youtube.com/watch?v=OYXNEm5Nvxs&t=77s)
