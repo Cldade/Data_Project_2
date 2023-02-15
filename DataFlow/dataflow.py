@@ -130,7 +130,7 @@ def dataFlow():
             data 
                 | "Get MAtricula" >> beam.ParDo(getMatriculaDoFn())
                 # Add Windows
-                | "Set fixed window" >> beam.WindowInto(window.FixedWindows(20))
+                | "Set fixed window" >> beam.WindowInto(window.FixedWindows(60))
                 | "Pair keys" >> beam.Map(lambda x: (x,1))
                 # CombinePerKey
                 | "CombinePerKey" >> beam.CombinePerKey(sum)
